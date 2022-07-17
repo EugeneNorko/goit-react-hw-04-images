@@ -77,16 +77,12 @@ const Span = styled.span`
 `;
 
 export class SearchBar extends Component {
-  // state = {
-  //   searchValue: '',
-  // };
-
   initialValues = {
     search: '',
   };
   handleSubmit = values => {
     if (values.search.trim() === '') {
-      toast.warn('Take a rest');
+      toast.warn('Write the search word');
       return;
     }
     this.props.onSubmit(values.search);
