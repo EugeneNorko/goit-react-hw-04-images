@@ -52,6 +52,7 @@ export const App = () => {
           setImages(images.hits);
           setTotalImages(images.totalHits);
           setPage(1);
+          setStatus('resolved');
         })
         .catch(error => {
           // setError(error);
@@ -66,12 +67,13 @@ export const App = () => {
 
   useEffect(() => {
     if (page !== 1) {
-      console.log('страница');
+      // console.log('страница');
       setStatus('pending');
       fetchImages(searchValue, page)
         .then(images => {
           setImages(prevState => [...prevState, ...images.hits]);
           setTotalImages(images.totalHits);
+          setStatus('resolved');
         })
         .catch(error => {
           // setError(error);
@@ -82,7 +84,7 @@ export const App = () => {
           setStatus('resolved');
         });
     }
-  }, [page]);
+  }, [page, searchValue]);
 
   const handleSubmit = search => {
     // console.log(search);
@@ -112,7 +114,7 @@ export const App = () => {
     <Box>
       <SearchBar formSubmit={handleSubmit} />
       {status === 'pending' && <Loader />}
-      {images.length > 0 && (
+      {images.length > 0 && status === 'resolved' && (
         <ImageGallery
           images={images}
           onImageClick={onImageClick}
