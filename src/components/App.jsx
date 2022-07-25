@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { ToastContainer } from 'react-toastify';
 
 import { SearchBar } from './Searchbar/Searchbar';
@@ -13,128 +13,118 @@ const Box = styled.div`
   padding: 0 0 40px 0;
 `;
 
-export class App extends Component {
-  state = {
-    searchValue: '',
-    images: [],
-    page: 1,
-    status: 'idle',
-    error: null,
-    totalImages: null,
-    showModal: false,
-    currentImage: null,
-    tags: null,
-  };
+export const App = () => {
+  const [searchValue, setSearchValue] = useState('');
+  const [images, setImages] = useState([]);
+  const [totalImages, setTotalImages] = useState(null);
+  const [page, setPage] = useState(1);
+  const [status, setStatus] = useState('idle');
+  // const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [currentImage, setCurrentImage] = useState(null);
+  const [tags, setTags] = useState(null);
 
-  componentDidMount() {
+  useEffect(() => {
+    setStatus('pending');
+    console.log('первый');
     fetchPopularImages()
       .then(images => {
-        // console.log('didMount');
-        this.setState({
-          images: images.hits,
-          status: 'resolved',
-          totalImages: images.totalHits,
-        });
+        setImages(images.hits);
+        setTotalImages(images.totalHits);
       })
-      .catch(error => this.setState({ status: 'rejected', error }))
+      .catch(error => {
+        // setError(error);
+        console.log(error);
+        setStatus('rejected');
+      })
       .finally(() => {
-        this.setState({ status: 'resolved' });
+        setStatus('resolved');
       });
-  }
+  }, []);
 
-  componentDidUpdate(prevProps, prevState) {
-    // console.log('didUpdate');
-    const { page, searchValue } = this.state;
-    const prevValue = prevState.searchValue;
-
-    if (prevValue !== searchValue) {
-      // console.log('changeValue');
-      this.setState({ status: 'pending' });
-      return fetchImages(searchValue, 1)
+  useEffect(() => {
+    if (searchValue !== '') {
+      console.log('значение');
+      setStatus('pending');
+      fetchImages(searchValue, 1)
         .then(images => {
           // console.log(images);
-          this.setState({
-            images: images.hits,
-            status: 'resolved',
-            page: 1,
-            totalImages: images.totalHits,
-          });
+          setImages(images.hits);
+          setTotalImages(images.totalHits);
+          setPage(1);
         })
-        .catch(error => this.setState({ status: 'rejected', error }))
+        .catch(error => {
+          // setError(error);
+          console.log(error);
+          setStatus('rejected');
+        })
         .finally(() => {
-          this.setState({ status: 'resolved' });
+          setStatus('resolved');
         });
     }
-    if (prevState.page !== page && page !== 1) {
-      // console.log('changePage');
-      this.setState({ status: 'pending' });
+  }, [searchValue]);
+
+  useEffect(() => {
+    if (page !== 1) {
+      console.log('страница');
+      setStatus('pending');
       fetchImages(searchValue, page)
         .then(images => {
-          this.setState(prevState => ({
-            images: [...prevState.images, ...images.hits],
-            status: 'resolved',
-            totalImages: images.totalHits,
-          }));
+          setImages(prevState => [...prevState, ...images.hits]);
+          setTotalImages(images.totalHits);
         })
-        .catch(error => this.setState({ status: 'rejected', error }))
+        .catch(error => {
+          // setError(error);
+          console.log(error);
+          setStatus('rejected');
+        })
         .finally(() => {
-          this.setState({ status: 'resolved' });
+          setStatus('resolved');
         });
     }
-  }
+  }, [page]);
 
-  handleSubmit = search => {
+  const handleSubmit = search => {
     // console.log(search);
-    if (search === this.state.searchValue) {
+    if (search === searchValue) {
       return;
     }
     // console.log('кнопка работет');
-    this.setState({ searchValue: search });
+    setSearchValue(search);
   };
 
-  increasePage = () => {
+  const increasePage = () => {
     // console.log('кнопка работет');
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+    setPage(prevState => prevState + 1);
   };
 
-  onToggleModal = () => {
-    this.setState(prevState => ({
-      showModal: !prevState.showModal,
-    }));
+  const onToggleModal = () => {
+    setShowModal(prevState => !prevState);
   };
 
-  onImageClick = (largeImageURL, tags) => {
-    this.setState({
-      currentImage: largeImageURL,
-      tags,
-    });
-    this.onToggleModal();
+  const onImageClick = (largeImageURL, tags) => {
+    setCurrentImage(largeImageURL);
+    setTags(tags);
+    onToggleModal();
   };
 
-  render() {
-    return (
-      <Box>
-        <SearchBar onSubmit={this.handleSubmit} />
-        {this.state.status === 'pending' && <Loader />}
-        {this.state.images.length > 0 && (
-          <ImageGallery
-            images={this.state.images}
-            onImageClick={this.onImageClick}
-          ></ImageGallery>
-        )}
-        {this.state.totalImages > this.state.images.length &&
-          this.state.status === 'resolved' && (
-            <Button onPageIncrease={this.increasePage} />
-          )}
-        {this.state.showModal && (
-          <Modal
-            onModalClose={this.onToggleModal}
-            image={this.state.currentImage}
-            tags={this.state.tags}
-          />
-        )}
-        <ToastContainer />
-      </Box>
-    );
-  }
-}
+  return (
+    <Box>
+      <SearchBar formSubmit={handleSubmit} />
+      {status === 'pending' && <Loader />}
+      {images.length > 0 && (
+        <ImageGallery
+          images={images}
+          onImageClick={onImageClick}
+        ></ImageGallery>
+      )}
+      {totalImages > images.length && status === 'resolved' && (
+        <Button onPageIncrease={increasePage} />
+      )}
+      {showModal && (
+        <Modal onModalClose={onToggleModal} image={currentImage} tags={tags} />
+      )}
+      <ToastContainer />
+    </Box>
+  );
+};

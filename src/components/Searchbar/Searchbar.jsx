@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+// import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Formik, Form, Field } from 'formik';
 import { BsSearch } from 'react-icons/bs';
@@ -76,37 +76,35 @@ const Span = styled.span`
   border: 0;
 `;
 
-export class SearchBar extends Component {
-  initialValues = {
+export const SearchBar = ({ formSubmit }) => {
+  const initialValues = {
     search: '',
   };
-  handleSubmit = values => {
+  const handleSubmit = values => {
     if (values.search.trim() === '') {
       toast.warn('Write the search word');
       return;
     }
-    this.props.onSubmit(values.search);
+    formSubmit(values.search);
   };
 
-  render() {
-    return (
-      <Header>
-        <Formik initialValues={this.initialValues} onSubmit={this.handleSubmit}>
-          <Forma>
-            <Button type="submit">
-              <BsSearch size={22} />
-              <Span>Search</Span>
-            </Button>
-            <Input
-              type="text"
-              name="search"
-              autoComplete="off"
-              autoFocus
-              placeholder="Search images and photos"
-            ></Input>
-          </Forma>
-        </Formik>
-      </Header>
-    );
-  }
-}
+  return (
+    <Header>
+      <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+        <Forma>
+          <Button type="submit">
+            <BsSearch size={22} />
+            <Span>Search</Span>
+          </Button>
+          <Input
+            type="text"
+            name="search"
+            autoComplete="off"
+            autoFocus
+            placeholder="Search images and photos"
+          ></Input>
+        </Forma>
+      </Formik>
+    </Header>
+  );
+};

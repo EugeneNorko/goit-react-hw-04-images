@@ -21,6 +21,7 @@ const Image = styled.img`
 export const ImageGalleryItem = ({ images, onImageClick }) => {
   return images.map(image => {
     const { tags, webformatURL, id, largeImageURL } = image;
+    // console.log(id);
     return (
       <Item key={id}>
         <Image
